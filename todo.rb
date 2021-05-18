@@ -19,16 +19,22 @@ get "/" do
   redirect "/lists"
 end
 
+# View all lists
 get "/lists" do
   @lists = session[:lists]
   erb(:lists)
 end
 
+# Render the new list form
 get "/lists/new" do 
   erb(:new_list)
 end
 
+# Create a new list
 post "/lists" do
+  # params[:list_name] comes from the name of the input field in our erb file
+  # With a POST request, the name:value are captured as invisible query params within the repsonse body
   session[:lists] << { name: params[:list_name], todos: [] }
+  session[:success] = "The list has been created."
   redirect "/lists"
 end
