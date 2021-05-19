@@ -1,0 +1,17 @@
+<section id='todos'>
+  <header>
+    <h2><%= @list[:name] %></h2>
+    <ul>
+      <li><a class='edit' href='/lists/<%= params[:id] %>/edit'>Edit List</a></li>
+    </ul>
+  </header>
+</section>
+
+<%# This content_for block is from a Sinatra module. It allows us to conditionally %>
+<%# display items defined in our template, depending on what page is being visited %>
+<% content_for :header_links do %>
+  <div class='actions'>
+    <a href='/lists'>All lists</a>
+  </div>
+<% end %>
+
