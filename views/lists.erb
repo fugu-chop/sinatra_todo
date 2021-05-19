@@ -1,11 +1,3 @@
-<% if session[:success] %>
-  <div class="flash success">
-    <%# This method allows us to delete a key value pair, and return that deleted value %>
-    <%# On subsequent page views, session[:success] will not exist, and so the box will not show up %>
-    <p><%= session.delete(:success) %></p>
-  </div>
-<% end %>
-
 <ul id="lists">
   <% @lists.each do |list| %>
     <li>
