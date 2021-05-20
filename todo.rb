@@ -30,6 +30,12 @@ helpers do
     redirect '/lists'
   end
 
+  def update_list(id)
+    @list[:name] = @list_name
+    session[:success] = 'The list has been updated.'
+    redirect "/lists/#{id}"
+  end
+
   def set_error_message
     session[:error] = 'The list name must be between 1 and 100 characters.' unless valid_input?
     session[:error] = 'The list name must be unique.' if duplicate_list_name?
@@ -37,6 +43,12 @@ helpers do
 
   def duplicate_list_name?
     session[:lists].any? { |list| list[:name] == @list_name }
+  end
+
+  # We want to handle the edge case where we want to enable users to rename their list the same existing name
+  def duplicate_list_name_except_current?(list_name)
+    remove_orig = session[:lists].reject { |list| list[:name] == list_name }
+    remove_orig.any? { |list| list[:name] == @list_name }
   end
 end
 
@@ -72,5 +84,18 @@ get '/lists/:id' do
 end
 
 get '/lists/:id/edit' do
+  idx = params[:id].to_i
+  @list = session[:lists][idx]
+  erb(:edit_list)
+end
+
+post '/lists/:id' do
+  idx = params[:id].to_i
+  @list = session[:lists][idx]
+  original_name = @list[:name]
+  @list_name = params[:list_name].strip
+  return update_list(idx) if valid_input? && !duplicate_list_name_except_current?(original_name)
+
+  set_error_message
   erb(:edit_list)
 end
