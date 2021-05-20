@@ -24,15 +24,14 @@ helpers do
   end
 
   def create_list
-    @id = -1
-    session[:lists] << { id: @id += 1, name: @list_name, todos: [] }
-    session[:success] = 'The list has been created.'
+    session[:lists] << { name: @list_name, todos: [] }
+    session[:success] = "The '#{@list_name}' list has been created."
     redirect '/lists'
   end
 
   def update_list(id)
     @list[:name] = @list_name
-    session[:success] = 'The list has been updated.'
+    session[:success] = "The '#{@list[:name]}' list has been updated."
     redirect "/lists/#{id}"
   end
 
@@ -98,4 +97,20 @@ post '/lists/:id' do
 
   set_error_message
   erb(:edit_list)
+end
+
+post '/lists/:id/delete' do
+  idx = params[:id].to_i
+  list_name = session[:lists][idx][:name]
+  session[:lists].delete_at(idx)
+  session[:success] = "The '#{list_name}' list has been deleted."
+  redirect "/lists"
+end
+
+post '/lists/:list_id/todos' do
+  list_id = params[:list_id].to_i
+  list = session[:lists][list_id]
+  list[:todos] << { name: "#{params[:todo]}", completed: false }
+  session[:success] = "The '#{params[:todo]}' item was added to the list."
+  redirect "/lists/#{list_id}"
 end

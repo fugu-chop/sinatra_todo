@@ -1,3 +1,17 @@
+<section id='todos'>
+  <header>
+    <h2>Editing: "<%= @list[:name] %>"</h2>
+    <ul>
+      <li>
+        <% # We need to use a form because we can't issue post requests through <a> tags %>
+        <form action="/lists/<%= params[:id] %>/delete" method='post'>
+          <button type='submit' class='delete' value='Save'>Delete List</button>
+        </form>
+      </li>
+    </ul>
+  </header>
+</section>
+
 <form action="/lists/<%= params[:id] %>" method="post">
   <dl>
     <dt>

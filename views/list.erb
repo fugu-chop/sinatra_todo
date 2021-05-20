@@ -7,6 +7,20 @@
   </header>
 </section>
 
+<form action="/lists/<%= params[:id] %>/todos" method="post">
+  <dl>
+    <dt>
+      <label for="todo">Enter a new item to do:</label>
+    </dt>
+    <dd>
+      <input name="todo" id="todo" placeholder="Something to do" type="text" value="">
+    </dd>
+  </dl>
+  <fieldset class="actions">
+    <input type="submit" value="Add">
+  </fieldset>
+</form>
+
 <%# This content_for block is from a Sinatra module. It allows us to conditionally %>
 <%# display items defined in our template, depending on what page is being visited %>
 <% content_for :header_links do %>
@@ -14,4 +28,3 @@
     <a href='/lists'>All lists</a>
   </div>
 <% end %>
-
