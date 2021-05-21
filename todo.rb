@@ -19,7 +19,7 @@ before do
 end
 
 helpers do
-  def valid_input?
+  def valid_list_input?
     (1..100).cover?(@list_name.size)
   end
 
@@ -35,8 +35,9 @@ helpers do
     redirect "/lists/#{id}"
   end
 
-  def set_error_message
-    session[:error] = 'The list name must be between 1 and 100 characters.' unless valid_input?
+  # I think this can be refactored to be universal. I need to make available the relevant variables
+  def set_list_error_message
+    session[:error] = 'The list name must be between 1 and 100 characters.' unless valid_list_input?
     session[:error] = 'The list name must be unique.' if duplicate_list_name?
   end
 
@@ -48,6 +49,34 @@ helpers do
   def duplicate_list_name_except_current?(list_name)
     remove_orig = session[:lists].reject { |list| list[:name] == list_name }
     remove_orig.any? { |list| list[:name] == @list_name }
+  end
+
+  def delete_list(idx)
+    session[:lists].delete_at(idx)
+    session[:success] = "The '#{@list_name}' list has been deleted."
+    redirect "/lists"
+  end
+
+  def create_todo(list_id)
+    @list[:todos] << { name: "#{params[:todo]}", completed: false }
+    session[:success] = "The '#{params[:todo]}' item was added to the list."
+    redirect "/lists/#{list_id}"
+  end
+
+  def duplicate_todo_input?
+    @list[:todos].any? { |list| list[:name] == params[:todo] }
+  end
+
+  def valid_todo_input?
+    todo_name = params[:todo].strip
+    (1..100).cover?(todo_name.size)
+  end
+
+  # Have created this since a lot of the instance variables required for set_list_error_message errors aren't available
+  # There are also dependencies in the template files to have access to instance variables for rendering
+  def set_todo_error_message
+    session[:error] = 'The todo name must be unique.' if duplicate_todo_input?
+    session[:error] = 'The todo name must be between 1 and 100 characters.' unless valid_todo_input?
   end
 end
 
@@ -69,9 +98,9 @@ post '/lists' do
   # params[:list_name] comes from the name of the input field in our erb file
   # With a POST request, the name:value are captured as invisible query params within the response body
   @list_name = params[:list_name].strip
-  return create_list if valid_input? && !duplicate_list_name?
+  return create_list if valid_list_input? && !duplicate_list_name?
 
-  set_error_message
+  set_list_error_message
   erb(:new_list)
 end
 
@@ -93,24 +122,24 @@ post '/lists/:id' do
   @list = session[:lists][idx]
   original_name = @list[:name]
   @list_name = params[:list_name].strip
-  return update_list(idx) if valid_input? && !duplicate_list_name_except_current?(original_name)
+  return update_list(idx) if valid_list_input? && !duplicate_list_name_except_current?(original_name)
 
-  set_error_message
+  set_list_error_message
   erb(:edit_list)
 end
 
 post '/lists/:id/delete' do
   idx = params[:id].to_i
-  list_name = session[:lists][idx][:name]
-  session[:lists].delete_at(idx)
-  session[:success] = "The '#{list_name}' list has been deleted."
-  redirect "/lists"
+  @list_name = session[:lists][idx][:name]
+  delete_list(idx)
 end
 
 post '/lists/:list_id/todos' do
   list_id = params[:list_id].to_i
-  list = session[:lists][list_id]
-  list[:todos] << { name: "#{params[:todo]}", completed: false }
-  session[:success] = "The '#{params[:todo]}' item was added to the list."
+  @list = session[:lists][list_id]
+  # Needs more validation around blank todo
+  return create_todo(list_id) if !duplicate_todo_input? && valid_todo_input?
+
+  set_todo_error_message
   redirect "/lists/#{list_id}"
 end
