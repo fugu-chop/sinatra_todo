@@ -2,7 +2,9 @@
   <header>
     <h2><%= @list[:name] %></h2>
     <ul>
-      <li><a class='edit' href='/lists/<%= params[:id] %>/edit'>Edit List</a></li>
+    <%# Using an instance variables allows us to be more explicit about relation between the template and the app
+    the params[:id] field could be anything, or provided by the user %>
+      <li><a class='edit' href='/lists/<%= @idx %>/edit'>Edit List</a></li>
     </ul>
   </header>
 
@@ -12,10 +14,10 @@
         <h3><%= todo[:name] %></h3>
       </li>
     <% end %>
-  </ul
+  </ul>
 </section>
 
-<form action="/lists/<%= params[:id] %>/todos" method="post">
+<form action="/lists/<%= @idx %>/todos" method="post">
   <dl>
     <dt>
       <label for="todo">Enter a new item to do:</label>
