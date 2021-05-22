@@ -17,6 +17,8 @@ This project is currently still in development. To get it running locally:
 5. If you need to reset the app (i.e. delete all information), please delete the associated cookie through your browser.
 
 ### Design Choices
+To-dos (and lists) exist within hashes, stored within an array. This means it's relatively easy to maintain ordering of items based on when they were added, and maintains the ease of fetching entries by hash key. The templates iterate through the array to display entries, so deleting lists or to-do items doesn't require complex logic - there are simply fewer items to iterate through when rendering the template.
+
 Many of the golden path 'verbs' within the app (e.g. creating a list, deleting a to-do) are extracted to methods. This causes some degree of code bloat, with a lot of methods being necessary for each individual action. Failure states _aren't_ extracted to methods, because 'failing' doesn't seem to match the equivalent of succeeding (e.g. `failed_create_list` versus `create_list`).
 
 I've chosen to reduce the amount of conditionals/`if` statements in my code on advice from other programmers. There's obviously a balance, but just as an exercise, I've tried to completely avoid `if/else` statements, which has necessitated another choice to do with routing.

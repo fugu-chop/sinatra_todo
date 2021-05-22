@@ -78,6 +78,28 @@ def set_todo_error_message
   session[:error] = 'The todo name must be between 1 and 100 characters.' unless valid_todo_input?
 end
 
+def delete_todo(todo_id)
+  deleted_item = @list[:todos].delete_at(todo_id)
+  session[:success] = "The '#{deleted_item[:name]}' to-do has been deleted from the '#{@list[:name]}' list."
+  redirect "/lists/#{@idx}"
+end
+
+def flip_completion(todo)
+  todo[:completed] = todo[:completed] != true
+end
+
+def display_todo_status(status)
+  status ? 'completed' : 'unchecked'
+end
+
+def check_todo(todo_id)
+  changed_item = @list[:todos][todo_id]
+  flip_completion(changed_item)
+  session[:success] =
+    "The '#{changed_item[:name]}' to-do has been #{display_todo_status(changed_item[:completed])}."
+  redirect "/lists/#{@idx}"
+end
+
 get '/' do
   redirect '/lists'
 end
@@ -139,4 +161,18 @@ post '/lists/:list_id/todos' do
 
   set_todo_error_message
   erb(:list)
+end
+
+post '/lists/:list_id/todos/:id/delete' do
+  @idx = params[:list_id].to_i
+  @list = session[:lists][@idx]
+  todo_id = params[:id].to_i
+  delete_todo(todo_id)
+end
+
+post '/lists/:list_id/todos/:id' do
+  @idx = params[:list_id].to_i
+  @list = session[:lists][@idx]
+  todo_id = params[:id].to_i
+  check_todo(todo_id)
 end

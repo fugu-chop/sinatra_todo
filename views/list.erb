@@ -1,7 +1,12 @@
-<section id='todos'>
+<section id="todos">
   <header>
     <h2><%= @list[:name] %></h2>
     <ul>
+      <li>
+        <form action="" method="post">
+          <button class="check" type="submit">Complete All</button>
+        </form>
+      </li>
     <%# Using an instance variables allows us to be more explicit about relation between the template and the app
     the params[:id] field could be anything, or provided by the user %>
       <li><a class='edit' href='/lists/<%= @idx %>/edit'>Edit List</a></li>
@@ -10,8 +15,15 @@
 
   <ul>
     <% @list[:todos].each_with_index do |todo, idx| %>
-      <li>
+      <li <%= "class='complete'" if todo[:completed] %> >
+        <form action="/lists/<%= @idx %>/todos/<%= idx %>" method="post" class="check">
+          <input type="hidden" name="completed" value="<%= !todo[:completed] %>" />
+          <button type="submit">Complete</button>
+        </form>
         <h3><%= todo[:name] %></h3>
+        <form action="/lists/<%= @idx %>/todos/<%= idx %>/delete" method="post" class="delete">
+          <button type="submit">Delete</button>
+        </form>
       </li>
     <% end %>
   </ul>
@@ -23,7 +35,7 @@
       <label for="todo">Enter a new item to do:</label>
     </dt>
     <dd>
-      <input name="todo" id="todo" placeholder="Something to do" type="text" value="">
+      <input name="todo" id="todo" placeholder="Something to do" type="text" value="<%= params[:todo] %>">
     </dd>
   </dl>
   <fieldset class="actions">
@@ -35,6 +47,6 @@
 <%# display items defined in our template, depending on what page is being visited %>
 <% content_for :header_links do %>
   <div class='actions'>
-    <a href='/lists'>All lists</a>
+    <a class='list' href='/lists'>All lists</a>
   </div>
 <% end %>
