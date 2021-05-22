@@ -3,8 +3,8 @@
     <h2><%= @list[:name] %></h2>
     <ul>
       <li>
-        <form action="" method="post">
-          <button class="check" type="submit">Complete All</button>
+        <form action="/lists/<%= @idx %>/complete_all" method="post">
+          <button class="check" type="submit"><%= session[:status] %> All</button>
         </form>
       </li>
     <%# Using an instance variables allows us to be more explicit about relation between the template and the app

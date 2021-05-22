@@ -58,7 +58,7 @@ end
 
 def create_todo(list_id)
   @list[:todos] << { name: params[:todo].to_s, completed: false }
-  session[:success] = "The '#{params[:todo]}' item was added to the '#{@list[:name]}' list."
+  session[:success] = "'#{params[:todo]}' was added to the '#{@list[:name]}' list."
   redirect "/lists/#{list_id}"
 end
 
@@ -80,7 +80,7 @@ end
 
 def delete_todo(todo_id)
   deleted_item = @list[:todos].delete_at(todo_id)
-  session[:success] = "The '#{deleted_item[:name]}' to-do has been deleted from the '#{@list[:name]}' list."
+  session[:success] = "'#{deleted_item[:name]}' has been deleted from the '#{@list[:name]}' list."
   redirect "/lists/#{@idx}"
 end
 
@@ -95,8 +95,32 @@ end
 def check_todo(todo_id)
   changed_item = @list[:todos][todo_id]
   flip_completion(changed_item)
+  status = display_todo_status(changed_item[:completed])
   session[:success] =
-    "The '#{changed_item[:name]}' to-do has been #{display_todo_status(changed_item[:completed])}."
+    "'#{changed_item[:name]}' has been #{status}."
+  redirect "/lists/#{@idx}"
+end
+
+def all_complete?
+  @list[:todos].all? { |todo| todo[:completed] == true } && !@list[:todos].empty?
+end
+
+def complete_all_todos
+  @list[:todos].each do |todo|
+    todo[:completed] = true
+  end
+  session[:success] = "All items on the '#{@list[:name]}' list have been marked as completed."
+  # We can't use an instance variable here, as it's not populated on initial get request
+  session[:status] = 'Uncheck'
+  redirect "/lists/#{@idx}"
+end
+
+def uncheck_all_todos
+  @list[:todos].each do |todo|
+    todo[:completed] = false
+  end
+  session[:status] = 'Complete'
+  session[:success] = "All items on the '#{@list[:name]}' list have been unchecked."
   redirect "/lists/#{@idx}"
 end
 
@@ -128,6 +152,7 @@ get '/lists/:id' do
   # Params are passed as strings from Sinatra
   @idx = params[:id].to_i
   @list = session[:lists][@idx]
+  session[:status] = all_complete? ? 'Uncheck' : 'Complete'
   erb(:list)
 end
 
@@ -142,7 +167,7 @@ post '/lists/:id' do
   @list = session[:lists][@idx]
   original_name = @list[:name]
   @list_name = params[:list_name].strip
-  return update_list(idx) if valid_list_input? && !duplicate_list_name_except_current?(original_name)
+  return update_list(@idx) if valid_list_input? && !duplicate_list_name_except_current?(original_name)
 
   set_list_error_message
   erb(:edit_list)
@@ -175,4 +200,10 @@ post '/lists/:list_id/todos/:id' do
   @list = session[:lists][@idx]
   todo_id = params[:id].to_i
   check_todo(todo_id)
+end
+
+post '/lists/:list_id/complete_all' do
+  @idx = params[:list_id].to_i
+  @list = session[:lists][@idx]
+  all_complete? ? uncheck_all_todos : complete_all_todos
 end
