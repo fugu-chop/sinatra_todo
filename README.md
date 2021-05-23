@@ -9,8 +9,11 @@ Lists and to-dos are persisted using the `sessions` feature in Sinatra, which en
 A layout was used to reduce the number of `.erb` view templates required. Most of the styling was provided as a CSS template file. 
 
 ### How to run
-This project is currently still in development. To get it running locally:
+The app has been deployed on Heroku: https://todo-list-dw.herokuapp.com/
+
+To get it running locally:
 1. Clone the repo locally
+2. Make sure you have the `bundle` gem installed.
 2. Run `bundle install` in your CLI
 3. Ruby `ruby todo.rb` in your CLI
 4. Visit `http://localhost:4567` in your web browser
