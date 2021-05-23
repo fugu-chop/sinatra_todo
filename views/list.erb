@@ -1,3 +1,4 @@
+<%# I've chosen not to use the 'complete' class as I prefer the functionality I've added to uncheck all %>
 <section id="todos">
   <header>
     <h2><%= @list[:name] %></h2>
@@ -14,7 +15,7 @@
   </header>
 
   <ul>
-    <% @list[:todos].each_with_index do |todo, idx| %>
+    <% sort_todos(@list[:todos]) do |todo, idx| %>
       <li <%= "class='complete'" if todo[:completed] %> >
         <form action="/lists/<%= @idx %>/todos/<%= idx %>" method="post" class="check">
           <input type="hidden" name="completed" value="<%= !todo[:completed] %>" />

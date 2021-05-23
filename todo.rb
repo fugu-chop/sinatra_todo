@@ -102,7 +102,7 @@ def check_todo(todo_id)
 end
 
 def all_complete?(list)
-  list[:todos].all? { |todo| todo[:completed] == true } && !list[:todos].empty?
+  list[:todos].all? { |todo| todo[:completed] } && !list[:todos].empty?
 end
 
 def complete_all_todos
@@ -128,13 +128,27 @@ def todos_completed(list)
   list[:todos].select { |todo| todo[:completed] }.size
 end
 
+def sort_lists(lists)
+  complete_lists, incomplete_lists = lists.partition { |list| all_complete?(list) }
+
+  incomplete_lists.sort_by { |list| list[:name] }.each { |list| yield(list, lists.index(list)) }
+  complete_lists.sort_by { |list| list[:name] }.each { |list| yield(list, lists.index(list)) }
+end
+
+
+def sort_todos(todos)
+  complete_todos, incomplete_todos = todos.partition { |todo| todo[:completed] }
+
+  incomplete_todos.sort_by { |todo| todo[:name] }.each { |todo| yield(todo, todos.index(todo)) }
+  complete_todos.sort_by { |todo| todo[:name] }.each { |todo| yield(todo, todos.index(todo)) }
+end
+
 get '/' do
   redirect '/lists'
 end
 
 get '/lists' do
   @lists = session[:lists]
-  puts todos_completed(@lists.first)
   erb(:lists)
 end
 
