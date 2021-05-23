@@ -101,8 +101,8 @@ def check_todo(todo_id)
   redirect "/lists/#{@idx}"
 end
 
-def all_complete?
-  @list[:todos].all? { |todo| todo[:completed] == true } && !@list[:todos].empty?
+def all_complete?(list)
+  list[:todos].all? { |todo| todo[:completed] == true } && !list[:todos].empty?
 end
 
 def complete_all_todos
@@ -124,12 +124,17 @@ def uncheck_all_todos
   redirect "/lists/#{@idx}"
 end
 
+def todos_completed(list)
+  list[:todos].select { |todo| todo[:completed] }.size
+end
+
 get '/' do
   redirect '/lists'
 end
 
 get '/lists' do
   @lists = session[:lists]
+  puts todos_completed(@lists.first)
   erb(:lists)
 end
 
@@ -137,7 +142,6 @@ get '/lists/new' do
   erb(:new_list)
 end
 
-# Create a new list
 post '/lists' do
   # params[:list_name] comes from the name of the input field in our erb file
   # With a POST request, the name:value are captured as invisible query params within the response body
@@ -152,7 +156,7 @@ get '/lists/:id' do
   # Params are passed as strings from Sinatra
   @idx = params[:id].to_i
   @list = session[:lists][@idx]
-  session[:status] = all_complete? ? 'Uncheck' : 'Complete'
+  session[:status] = all_complete?(@list) ? 'Uncheck' : 'Complete'
   erb(:list)
 end
 
@@ -205,5 +209,5 @@ end
 post '/lists/:list_id/complete_all' do
   @idx = params[:list_id].to_i
   @list = session[:lists][@idx]
-  all_complete? ? uncheck_all_todos : complete_all_todos
+  all_complete?(@list) ? uncheck_all_todos : complete_all_todos
 end
