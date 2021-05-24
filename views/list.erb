@@ -16,7 +16,9 @@
 
   <ul>
     <% sort_todos(@list[:todos]) do |todo, idx| %>
-      <li <%= "class='complete'" if todo[:completed] %> >
+    <%# When there is a ==, this means do not escape the HTML - this is necessary in our case %>
+    <%# Due to conditional logic being directly implemented into our template %>
+      <li <%== "class='complete'" if todo[:completed] %> >
         <form action="/lists/<%= @idx %>/todos/<%= idx %>" method="post" class="check">
           <input type="hidden" name="completed" value="<%= !todo[:completed] %>" />
           <button type="submit">Complete</button>

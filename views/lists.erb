@@ -1,6 +1,6 @@
 <ul id="lists">
   <% sort_lists(@lists) do |list, idx| %>
-    <li <%= "class = 'complete'" if all_complete?(list) %>>
+    <li <%== "class = 'complete'" if all_complete?(list) %>>
       <a href="/lists/<%= idx %>">
         <h2><%= list[:name] %></h2>
         <%# I prefer the number of completed items rather than yet to be completed %>

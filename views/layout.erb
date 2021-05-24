@@ -12,7 +12,7 @@
       <h1>Todo Tracker</h1>
       <%# We define the specific content on the page we want it to display %>
       <%# This is just a placeholder the content %>
-      <%= yield_content :header_links %>
+      <%== yield_content :header_links %>
     </header>
     
     <% if session[:error] %>
@@ -30,7 +30,7 @@
     <% end %>
 
     <main>
-      <%= yield %>
+      <%== yield %>
     </main>
   </body>
 </html>

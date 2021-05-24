@@ -7,6 +7,8 @@ require 'tilt/erubis'
 
 # This sets up Sinatra to use sessions
 configure do
+  # Sanitise HTML input
+  set(:erb, :escape_html => true)
   enable(:sessions)
   # We need to set the session secret here.
   # If we don't specify a value here, Sinatra will randomly create a session secret every time it starts.
@@ -16,6 +18,26 @@ end
 
 before do
   session[:lists] ||= []
+end
+
+helpers do 
+  def sort_lists(lists)
+    complete_lists, incomplete_lists = lists.partition { |list| all_complete?(list) }
+
+    incomplete_lists.sort_by { |list| list[:name] }.each { |list| yield(list, lists.index(list)) }
+    complete_lists.sort_by { |list| list[:name] }.each { |list| yield(list, lists.index(list)) }
+  end
+
+  def sort_todos(todos)
+    complete_todos, incomplete_todos = todos.partition { |todo| todo[:completed] }
+
+    incomplete_todos.sort_by { |todo| todo[:name] }.each { |todo| yield(todo, todos.index(todo)) }
+    complete_todos.sort_by { |todo| todo[:name] }.each { |todo| yield(todo, todos.index(todo)) }
+  end
+
+  def all_complete?(list)
+    list[:todos].all? { |todo| todo[:completed] } && !list[:todos].empty?
+  end
 end
 
 def valid_list_input?
@@ -101,10 +123,6 @@ def check_todo(todo_id)
   redirect "/lists/#{@idx}"
 end
 
-def all_complete?(list)
-  list[:todos].all? { |todo| todo[:completed] } && !list[:todos].empty?
-end
-
 def complete_all_todos
   @list[:todos].each do |todo|
     todo[:completed] = true
@@ -126,21 +144,6 @@ end
 
 def todos_completed(list)
   list[:todos].select { |todo| todo[:completed] }.size
-end
-
-def sort_lists(lists)
-  complete_lists, incomplete_lists = lists.partition { |list| all_complete?(list) }
-
-  incomplete_lists.sort_by { |list| list[:name] }.each { |list| yield(list, lists.index(list)) }
-  complete_lists.sort_by { |list| list[:name] }.each { |list| yield(list, lists.index(list)) }
-end
-
-
-def sort_todos(todos)
-  complete_todos, incomplete_todos = todos.partition { |todo| todo[:completed] }
-
-  incomplete_todos.sort_by { |todo| todo[:name] }.each { |todo| yield(todo, todos.index(todo)) }
-  complete_todos.sort_by { |todo| todo[:name] }.each { |todo| yield(todo, todos.index(todo)) }
 end
 
 get '/' do
