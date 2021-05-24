@@ -8,7 +8,7 @@ require 'tilt/erubis'
 # This sets up Sinatra to use sessions
 configure do
   # Sanitise HTML input
-  set(:erb, :escape_html => true)
+  set(:erb, escape_html: true)
   enable(:sessions)
   # We need to set the session secret here.
   # If we don't specify a value here, Sinatra will randomly create a session secret every time it starts.
@@ -20,7 +20,7 @@ before do
   session[:lists] ||= []
 end
 
-helpers do 
+helpers do
   def sort_lists(lists)
     complete_lists, incomplete_lists = lists.partition { |list| all_complete?(list) }
 
@@ -146,6 +146,14 @@ def todos_completed(list)
   list[:todos].select { |todo| todo[:completed] }.size
 end
 
+def load_list(index)
+  list = session[:lists][index] if index && session[:lists][index]
+  return list if list
+
+  session[:error] = 'The specified list was not found.'
+  redirect '/lists'
+end
+
 get '/' do
   redirect '/lists'
 end
@@ -172,20 +180,20 @@ end
 get '/lists/:id' do
   # Params are passed as strings from Sinatra
   @idx = params[:id].to_i
-  @list = session[:lists][@idx]
+  @list = load_list(@idx)
   session[:status] = all_complete?(@list) ? 'Uncheck' : 'Complete'
   erb(:list)
 end
 
 get '/lists/:id/edit' do
   @idx = params[:id].to_i
-  @list = session[:lists][@idx]
+  @list = load_list(@idx)
   erb(:edit_list)
 end
 
 post '/lists/:id' do
   @idx = params[:id].to_i
-  @list = session[:lists][@idx]
+  @list = load_list(@idx)
   original_name = @list[:name]
   @list_name = params[:list_name].strip
   return update_list(@idx) if valid_list_input? && !duplicate_list_name_except_current?(original_name)
@@ -202,7 +210,7 @@ end
 
 post '/lists/:list_id/todos' do
   @idx = params[:list_id].to_i
-  @list = session[:lists][@idx]
+  @list = load_list(@idx)
   return create_todo(@idx) if !duplicate_todo_input? && valid_todo_input?
 
   set_todo_error_message
@@ -211,20 +219,20 @@ end
 
 post '/lists/:list_id/todos/:id/delete' do
   @idx = params[:list_id].to_i
-  @list = session[:lists][@idx]
+  @list = load_list(@idx)
   todo_id = params[:id].to_i
   delete_todo(todo_id)
 end
 
 post '/lists/:list_id/todos/:id' do
   @idx = params[:list_id].to_i
-  @list = session[:lists][@idx]
+  @list = load_list(@idx)
   todo_id = params[:id].to_i
   check_todo(todo_id)
 end
 
 post '/lists/:list_id/complete_all' do
   @idx = params[:list_id].to_i
-  @list = session[:lists][@idx]
+  @list = load_list(@idx)
   all_complete?(@list) ? uncheck_all_todos : complete_all_todos
 end
