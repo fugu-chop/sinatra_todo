@@ -16,8 +16,10 @@
 
   <ul>
     <% sort_todos(@list[:todos]) do |todo, idx| %>
-    <%# When there is a ==, this means do not escape the HTML - this is necessary in our case %>
-    <%# Due to conditional logic being directly implemented into our template %>
+    <%# When there is a ==, this means do not escape the HTML %>
+    <%# For some reason, Ruby does not allow conditionals within an argument of a method call%>
+    <%# The method call here is Erubis#escape_xml(string) %>
+    <%# We could also have used escape_xml(<%= ("class='complete'" if todo[:completed]) %>) %>
       <li <%== "class='complete'" if todo[:completed] %> >
         <form action="/lists/<%= @idx %>/todos/<%= idx %>" method="post" class="check">
           <input type="hidden" name="completed" value="<%= !todo[:completed] %>" />
