@@ -19,7 +19,7 @@
     <%# When there is a ==, this means do not escape the HTML %>
     <%# For some reason, Ruby does not allow conditionals within an argument of a method call%>
     <%# The method call here is Erubis#escape_xml(string) %>
-    <%# We could also have used escape_xml(<%= ("class='complete'" if todo[:completed]) %>) %>
+    <%# We could also have used escape_xml(<%= ("class='complete'" if todo[:completed]) %>
       <li <%== "class='complete'" if todo[:completed] %> >
         <form action="/lists/<%= @idx %>/todos/<%= idx %>" method="post" class="check">
           <input type="hidden" name="completed" value="<%= !todo[:completed] %>" />
