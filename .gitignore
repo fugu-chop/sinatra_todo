@@ -40,3 +40,6 @@ vignettes/*.pdf
 
 # Trash Mac files
 .DS_Store
+
+# Environmental variable files
+.env

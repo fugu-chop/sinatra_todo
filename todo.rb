@@ -4,6 +4,9 @@ require 'sinatra'
 require 'sinatra/reloader' if development?
 require 'sinatra/content_for'
 require 'tilt/erubis'
+require 'dotenv/load'
+
+Dotenv.load
 
 # This sets up Sinatra to use sessions
 configure do
@@ -13,7 +16,7 @@ configure do
   # We need to set the session secret here.
   # If we don't specify a value here, Sinatra will randomly create a session secret every time it starts.
   # This means that every time Sinatra starts up again, a new secret will be generated, invalidating any old sessions.
-  set(:session_secret, 'secret')
+  set(:session_secret, ENV['SECRET'])
 end
 
 before do
@@ -24,15 +27,15 @@ helpers do
   def sort_lists(lists)
     complete_lists, incomplete_lists = lists.partition { |list| all_complete?(list) }
 
-    incomplete_lists.sort_by { |list| list[:name] }.each { |list| yield(list, lists.index(list)) }
-    complete_lists.sort_by { |list| list[:name] }.each { |list| yield(list, lists.index(list)) }
+    incomplete_lists.each { |list| yield(list, lists.index(list)) }
+    complete_lists.each { |list| yield(list, lists.index(list)) }
   end
 
   def sort_todos(todos)
     complete_todos, incomplete_todos = todos.partition { |todo| todo[:completed] }
 
-    incomplete_todos.sort_by { |todo| todo[:name] }.each { |todo| yield(todo, todos.index(todo)) }
-    complete_todos.sort_by { |todo| todo[:name] }.each { |todo| yield(todo, todos.index(todo)) }
+    incomplete_todos.each { |todo| yield(todo, todos.index(todo)) }
+    complete_todos.each { |todo| yield(todo, todos.index(todo)) }
   end
 
   def all_complete?(list)
