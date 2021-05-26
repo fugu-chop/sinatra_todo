@@ -4,7 +4,7 @@ A repo to contain a web-based personal task manager using Sinatra.
 ### Basic Overview
 This is a Sinatra based To-Do app that allows users to create multiple lists, where each list can contain multiple to-do items, all through the web browser. Both individual to-do items and lists can be created, renamed and deleted, with some validation built in (i.e. preventing duplicate lists, duplicate to-do items on the same list, empty names).
 
-Lists and to-dos are persisted using the `sessions` feature in Sinatra, which enables a cookie to be stored in the browser for usage between sessions.
+Lists and to-dos are persisted using the `sessions` feature in Sinatra, which enables a cookie to be stored in the browser for usage between sessions. For the actual session key, I've used the `dotenv` gem, which allows me to create a `.env` file locally in the root project directory, and store it there. I've added that file to my `.gitignore` so it can't be seen in the repo.
 
 A layout was used to reduce the number of `.erb` view templates required. Most of the styling was provided as a CSS template file. 
 
