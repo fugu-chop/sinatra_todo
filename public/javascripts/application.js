@@ -25,13 +25,18 @@ $(function () {
 
       // By default, the post request results in two requests - a 303 redirect and a 200 (on re-render)
       // We want to avoid the redirect - that's the entire point of an AJAX request (minimise full re-render)
+      // Without stopping the redirect, it means our success/error messages only display for a split second
+      // since the post request itself has a re-render of the page, and the redirect causes a full refresh
       request.done(function (data, textStatus, jqXHR) {
         if (jqXHR.status === 204) {
           form.parent("li").remove();
         } else if (jqXHR.status === 200) {
+          // data represents the URL returned by our delete list code
           document.location = data;
         }
       });
+      // Note the above logic will not execute if there is an error (status in 400 range). We would normally
+      // write a request.fail branch of this logic to handle that in production.
     }
   });
 

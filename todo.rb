@@ -84,8 +84,16 @@ def delete_list_success
   redirect '/lists'
 end
 
+# Note that in our implementation, if the last created todo is deleted, we would be able to
+# reuse that id. This is problematic in some contexts, but here, it's fine.
+def next_todo_id(todos)
+  max = todos.map { |todo| todo[:id] }.max || 0
+  max + 1
+end
+
 def create_todo(list_id)
-  @list[:todos] << { name: params[:todo].to_s, completed: false }
+  id = next_todo_id(@list[:todos])
+  @list[:todos] << { id: id, name: params[:todo].to_s, completed: false }
   session[:success] = "'#{params[:todo]}' was added to the '#{@list[:name]}' list."
   redirect "/lists/#{list_id}"
 end
@@ -215,7 +223,7 @@ post '/lists/:id/delete' do
   @idx = params[:id].to_i
   @list_name = session[:lists][@idx][:name]
   delete_list(@idx)
-  env["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest" ? "/lists" : delete_list_success
+  env['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest' ? '/lists' : delete_list_success
 end
 
 post '/lists/:list_id/todos' do
@@ -232,7 +240,12 @@ post '/lists/:list_id/todos/:id/delete' do
   @list = load_list(@idx)
   todo_id = params[:id].to_i
   deleted_item = delete_todo(todo_id)
-  return deleted_todo_success(deleted_item) unless env["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest"
+  # The HTTP_X_REQUESTED_WITH request header is added by jQuery (Sinatra prepends HTTP_)
+  # If an AJAX request is successful, this has the consequence of not displaying our flash messages
+  # If we did add a message to the session, many of these messages could accumulate
+  # since they are only displayed when a new page is loaded from the server.
+  return deleted_todo_success(deleted_item) unless env['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest'
+
   status 204
 end
 
