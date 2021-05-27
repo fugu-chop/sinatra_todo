@@ -15,7 +15,7 @@ To get it running locally:
 1. Clone the repo locally
 2. Make sure you have the `bundle` gem installed.
 2. Run `bundle install` in your CLI
-3. Ruby `ruby todo.rb` in your CLI
+3. Run `ruby todo.rb` in your CLI
 4. Visit `http://localhost:4567` in your web browser
 5. If you need to reset the app (i.e. delete all information), please delete the associated cookie through your browser.
 
@@ -24,14 +24,14 @@ To-dos (and lists) exist within hashes, stored within an array. This means it's 
 
 Many of the golden path 'verbs' within the app (e.g. creating a list, deleting a to-do) are extracted to methods. This causes some degree of code bloat, with a lot of methods being necessary for each individual action. Failure states _aren't_ extracted to methods, because 'failing' doesn't seem to match the equivalent of succeeding (e.g. `failed_create_list` versus `create_list`).
 
-I've chosen to reduce the amount of conditionals/`if` statements in my code on advice from other programmers. There's obviously a balance, but just as an exercise, I've tried to completely avoid `if/else` statements, which has necessitated another choice to do with routing.
+I've chosen to reduce the amount of conditionals/`if` statements in my code on advice from other programmers. There's obviously a balance, but just as an exercise, I've tried to completely avoid `if/else` statements..
 
-Routing for the 'golden' path is also handled within individual methods; I think this isn't best practice, since the act of 'updating a list' (for example) doesn't necessarily imply that a re-route should occur. However, I've chosen to do this because I have chosen to forgo `if` statements - within the requests within Sinatra, I need to `return` the golden path, as my fail path is directly below the golden path (i.e. displaying errors, other routing).
+Routing for the 'golden' path is also handled within individual methods, and run within the relevant route block. I've chosen to do this because I have chosen to forgo `if` statements - within the requests within Sinatra, I need to `return` the golden path, as my fail code is directly below the golden path (i.e. displaying errors, other routing).
 
 ### Challenges
 Avoiding `if` statements made me think about how to sequentially structure my code - `if` does provide a lot of convenience, but it was an interesting exercise. It meant I had to make sure to `return` certain methods, and that those methods did absolutely everything needed before being returned. In retrospect they probably do a little too much (usually they perform some action __as well as__ handle redirects).
 
-Working with both instance and local variables was a bit of a challenge. Because blocks create their own scope (i.e. for each request method in Sinatra), and routes are mutually exclusive, there's little risk of overwriting/conflicting instance variables. The lazy programmer in me just wants to use instance variables everywhere, as they allow access to the relev ant `.erb` template.
+Working with both instance and local variables was a bit of a challenge. Because blocks create their own scope (i.e. for each request method in Sinatra), and routes are mutually exclusive, there's little risk of overwriting/conflicting instance variables. The lazy programmer in me just wants to use instance variables everywhere, as they allow access to the relevant `.erb` template.
 
 ### Project To Dos
 - More generic error message generation
