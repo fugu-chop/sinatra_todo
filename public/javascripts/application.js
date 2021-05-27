@@ -14,8 +14,24 @@ $(function () {
 
     var ok = confirm("Are you sure? This cannot be undone!");
     if (ok) {
-      // Dynamically defines whichever element the event is being fired on
-      this.submit();
+      var form = $(this);
+
+      var request = $.ajax({
+        // We don't need the full url - if we don't specify a hostname
+        // the browser will use the same hostname that it loaded the page from
+        url: form.attr("action"),
+        method: form.attr("method")
+      });
+
+      // By default, the post request results in two requests - a 303 redirect and a 200 (on re-render)
+      // We want to avoid the redirect - that's the entire point of an AJAX request (minimise full re-render)
+      request.done(function (data, textStatus, jqXHR) {
+        if (jqXHR.status === 204) {
+          form.parent("li").remove();
+        } else if (jqXHR.status === 200) {
+          document.location = data;
+        }
+      });
     }
   });
 

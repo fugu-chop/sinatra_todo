@@ -77,6 +77,9 @@ end
 
 def delete_list(idx)
   session[:lists].delete_at(idx)
+end
+
+def delete_list_success
   session[:success] = "The '#{@list_name}' list has been deleted."
   redirect '/lists'
 end
@@ -104,7 +107,10 @@ def set_todo_error_message
 end
 
 def delete_todo(todo_id)
-  deleted_item = @list[:todos].delete_at(todo_id)
+  @list[:todos].delete_at(todo_id)
+end
+
+def deleted_todo_success(deleted_item)
   session[:success] = "'#{deleted_item[:name]}' has been deleted from the '#{@list[:name]}' list."
   redirect "/lists/#{@idx}"
 end
@@ -209,6 +215,7 @@ post '/lists/:id/delete' do
   @idx = params[:id].to_i
   @list_name = session[:lists][@idx][:name]
   delete_list(@idx)
+  env["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest" ? "/lists" : delete_list_success
 end
 
 post '/lists/:list_id/todos' do
@@ -224,7 +231,9 @@ post '/lists/:list_id/todos/:id/delete' do
   @idx = params[:list_id].to_i
   @list = load_list(@idx)
   todo_id = params[:id].to_i
-  delete_todo(todo_id)
+  deleted_item = delete_todo(todo_id)
+  return deleted_todo_success(deleted_item) unless env["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest"
+  status 204
 end
 
 post '/lists/:list_id/todos/:id' do
