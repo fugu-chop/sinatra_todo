@@ -34,8 +34,8 @@ helpers do
   def sort_todos(todos)
     complete_todos, incomplete_todos = todos.partition { |todo| todo[:completed] }
 
-    incomplete_todos.each { |todo| yield(todo, todos.index(todo)) }
-    complete_todos.each { |todo| yield(todo, todos.index(todo)) }
+    incomplete_todos.each { |todo| yield(todo) }
+    complete_todos.each { |todo| yield(todo) }
   end
 
   def all_complete?(list)
@@ -115,6 +115,7 @@ def set_todo_error_message
 end
 
 def delete_todo(todo_id)
+  @list[:todos].reject! { |todo| todo[:id] == todo_id }
   @list[:todos].delete_at(todo_id)
 end
 
@@ -127,14 +128,18 @@ def flip_completion(todo)
   todo[:completed] = todo[:completed] != true
 end
 
-def display_todo_status(status)
+def return_todo_status(status)
   status ? 'completed' : 'unchecked'
 end
 
 def check_todo(todo_id)
-  changed_item = @list[:todos][todo_id]
+  # This change is necessary as a result of our deleting items via jQuery - our indexes were originally based on 
+  # position within an array on render. This index is important as it's the basis for which we perform operations.
+  # For example, we check off the first todo in our list (index of 0 in our route). When re-render the page, the first
+  # item should be index 0, but the route still retains the original index of 1.
+  changed_item = @list[:todos].find { |todo| todo[:id] == todo_id }
   flip_completion(changed_item)
-  status = display_todo_status(changed_item[:completed])
+  status = return_todo_status(changed_item[:completed])
   session[:success] =
     "'#{changed_item[:name]}' has been #{status}."
   redirect "/lists/#{@idx}"
@@ -238,7 +243,7 @@ end
 post '/lists/:list_id/todos/:id/delete' do
   @idx = params[:list_id].to_i
   @list = load_list(@idx)
-  todo_id = params[:id].to_i
+  todo_id = params[:id].to_i 
   deleted_item = delete_todo(todo_id)
   # The HTTP_X_REQUESTED_WITH request header is added by jQuery (Sinatra prepends HTTP_)
   # If an AJAX request is successful, this has the consequence of not displaying our flash messages
