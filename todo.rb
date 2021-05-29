@@ -24,18 +24,18 @@ before do
 end
 
 helpers do
-  def sort_lists(lists)
+  def sort_lists(lists, &block)
     complete_lists, incomplete_lists = lists.partition { |list| all_complete?(list) }
 
-    incomplete_lists.each { |list| yield(list) }
-    complete_lists.each { |list| yield(list) }
+    incomplete_lists.each(&block)
+    complete_lists.each(&block)
   end
 
-  def sort_todos(todos)
+  def sort_todos(todos, &block)
     complete_todos, incomplete_todos = todos.partition { |todo| todo[:completed] }
 
-    incomplete_todos.each { |todo| yield(todo) }
-    complete_todos.each { |todo| yield(todo) }
+    incomplete_todos.each(&block)
+    complete_todos.each(&block)
   end
 
   def all_complete?(list)
@@ -133,8 +133,8 @@ def return_todo_status(status)
 end
 
 def check_todo(todo_id)
-  # This change is necessary as a result of our deleting items via jQuery - our indexes were originally based on 
-  # position within an array on render. 
+  # This change is necessary as a result of our deleting items via jQuery - our indexes were originally based on
+  # position within an array on render.
   changed_item = @list[:todos].find { |todo| todo[:id] == todo_id }
   flip_completion(changed_item)
   status = return_todo_status(changed_item[:completed])
@@ -166,8 +166,8 @@ def todos_completed(list)
   list[:todos].select { |todo| todo[:completed] }.size
 end
 
-def load_list(id)  
-  list = session[:lists].find { |list| list[:id] == id }
+def load_list(id)
+  list = session[:lists].find { |list_item| list_item[:id] == id }
   return list if list
 
   session[:error] = 'The specified list was not found.'
@@ -227,11 +227,11 @@ post '/lists/:id/delete' do
   @idx = params[:id].to_i
   @list_name = session[:lists].find { |list| list[:id] == @idx }
   delete_list(@idx)
-  # This kind of defeats the purpose of AJAX - The issue is that the form has the 'delete' class, 
+  # This kind of defeats the purpose of AJAX - The issue is that the form has the 'delete' class,
   # (i.e. the code is configured to delete a todo, not delete a list), so we need to handle with AJAX
   # even though it would make more sense to use a standard form submission.
-  
-  # Returning '/lists' will return a status 200, triggering the other branch in our JS logic 
+
+  # Returning '/lists' will return a status 200, triggering the other branch in our JS logic
   # These conditionals work if the script tag is disabled in the template file
   env['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest' ? '/lists' : delete_list_success
 end
@@ -249,8 +249,8 @@ post '/lists/:list_id/todos/:id/delete' do
   # check if i can get rid of the instance variable
   @idx = params[:list_id].to_i
   @list = load_list(@idx)
-  todo_id = params[:id].to_i 
-  deleted_item =  @list[:todos].find { |list| list[:id] == todo_id }
+  todo_id = params[:id].to_i
+  deleted_item = @list[:todos].find { |list| list[:id] == todo_id }
   delete_todo(todo_id)
   # The HTTP_X_REQUESTED_WITH request header is added by jQuery (Sinatra prepends HTTP_)
   # If an AJAX request is successful, this has the consequence of not displaying our flash messages
