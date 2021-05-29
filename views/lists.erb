@@ -1,7 +1,7 @@
 <ul id="lists">
-  <% sort_lists(@lists) do |list, idx| %>
+  <% sort_lists(@lists) do |list| %>
     <li class = <%== 'complete' if all_complete?(list) %>>
-      <a href="/lists/<%= idx %>">
+      <a href="/lists/<%= list[:id] %>">
         <h2><%= list[:name] %></h2>
         <%# I prefer the number of completed items rather than yet to be completed %>
         <p> <%= todos_completed(list) %> / <%= list[:todos].size %></p>

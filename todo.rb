@@ -27,8 +27,8 @@ helpers do
   def sort_lists(lists)
     complete_lists, incomplete_lists = lists.partition { |list| all_complete?(list) }
 
-    incomplete_lists.each { |list| yield(list, lists.index(list)) }
-    complete_lists.each { |list| yield(list, lists.index(list)) }
+    incomplete_lists.each { |list| yield(list) }
+    complete_lists.each { |list| yield(list) }
   end
 
   def sort_todos(todos)
@@ -47,8 +47,9 @@ def valid_list_input?
   (1..100).cover?(@list_name.size)
 end
 
-def create_list
-  session[:lists] << { name: @list_name, todos: [] }
+def create_list(lists)
+  list_id = next_id(lists)
+  session[:lists] << { id: list_id, name: @list_name, todos: [] }
   session[:success] = "The '#{@list_name}' list has been created."
   redirect '/lists'
 end
@@ -76,23 +77,23 @@ def duplicate_list_name_except_current?(list_name)
 end
 
 def delete_list(idx)
-  session[:lists].delete_at(idx)
+  session[:lists].reject! { |list| list[:id] == idx }
 end
 
 def delete_list_success
-  session[:success] = "The '#{@list_name}' list has been deleted."
+  session[:success] = "The '#{@list_name[:name]}' list has been deleted."
   redirect '/lists'
 end
 
 # Note that in our implementation, if the last created todo is deleted, we would be able to
 # reuse that id. This is problematic in some contexts, but here, it's fine.
-def next_todo_id(todos)
+def next_id(todos)
   max = todos.map { |todo| todo[:id] }.max || 0
   max + 1
 end
 
 def create_todo(list_id)
-  id = next_todo_id(@list[:todos])
+  id = next_id(@list[:todos])
   @list[:todos] << { id: id, name: params[:todo].to_s, completed: false }
   session[:success] = "'#{params[:todo]}' was added to the '#{@list[:name]}' list."
   redirect "/lists/#{list_id}"
@@ -116,7 +117,6 @@ end
 
 def delete_todo(todo_id)
   @list[:todos].reject! { |todo| todo[:id] == todo_id }
-  @list[:todos].delete_at(todo_id)
 end
 
 def deleted_todo_success(deleted_item)
@@ -134,9 +134,10 @@ end
 
 def check_todo(todo_id)
   # This change is necessary as a result of our deleting items via jQuery - our indexes were originally based on 
-  # position within an array on render. This index is important as it's the basis for which we perform operations.
-  # For example, we check off the first todo in our list (index of 0 in our route). When re-render the page, the first
-  # item should be index 0, but the route still retains the original index of 1.
+  # position within an array on render. For example, we delete the first todo in our list (index of 0 on render)
+  # However, jQuery means that the page does not re-render. As such, the first item should be index 0,
+  # but the todo still retains the original index of 1 from the initial render, resulting in wrong todos being 
+  # checked/completed/renamed - the route has not been changed.
   changed_item = @list[:todos].find { |todo| todo[:id] == todo_id }
   flip_completion(changed_item)
   status = return_todo_status(changed_item[:completed])
@@ -168,8 +169,8 @@ def todos_completed(list)
   list[:todos].select { |todo| todo[:completed] }.size
 end
 
-def load_list(index)
-  list = session[:lists][index] if index && session[:lists][index]
+def load_list(id)  
+  list = session[:lists].find { |list| list[:id] == id }
   return list if list
 
   session[:error] = 'The specified list was not found.'
@@ -193,7 +194,8 @@ post '/lists' do
   # params[:list_name] comes from the name of the input field in our erb file
   # With a POST request, the name:value are captured as invisible query params within the response body
   @list_name = params[:list_name].strip
-  return create_list if valid_list_input? && !duplicate_list_name?
+  lists = session[:lists]
+  return create_list(lists) if valid_list_input? && !duplicate_list_name?
 
   set_list_error_message
   erb(:new_list)
@@ -226,8 +228,15 @@ end
 
 post '/lists/:id/delete' do
   @idx = params[:id].to_i
-  @list_name = session[:lists][@idx][:name]
+  @list_name = session[:lists].find { |list| list[:id] == @idx }
   delete_list(@idx)
+  # This kind of defeats the purpose of AJAX - The issue is that the form has the 'delete' class, 
+  # which makes the JS handler fire, so we are forced to handle it as AJAX 
+  # (i.e. the code is configured to delete a todo, not delete a list)
+  # even though it would make more sense to use a standard form submission.
+  # Returning '/lists' will return a status 200, triggering the other branch in our JS logic 
+
+  # These conditionals work if the script tag is disabled in the template file
   env['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest' ? '/lists' : delete_list_success
 end
 
@@ -241,10 +250,12 @@ post '/lists/:list_id/todos' do
 end
 
 post '/lists/:list_id/todos/:id/delete' do
+  # check if i can get rid of the instance variable
   @idx = params[:list_id].to_i
   @list = load_list(@idx)
   todo_id = params[:id].to_i 
-  deleted_item = delete_todo(todo_id)
+  deleted_item =  @list[:todos].find { |list| list[:id] == todo_id }
+  delete_todo(todo_id)
   # The HTTP_X_REQUESTED_WITH request header is added by jQuery (Sinatra prepends HTTP_)
   # If an AJAX request is successful, this has the consequence of not displaying our flash messages
   # If we did add a message to the session, many of these messages could accumulate
