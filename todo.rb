@@ -134,10 +134,7 @@ end
 
 def check_todo(todo_id)
   # This change is necessary as a result of our deleting items via jQuery - our indexes were originally based on 
-  # position within an array on render. For example, we delete the first todo in our list (index of 0 on render)
-  # However, jQuery means that the page does not re-render. As such, the first item should be index 0,
-  # but the todo still retains the original index of 1 from the initial render, resulting in wrong todos being 
-  # checked/completed/renamed - the route has not been changed.
+  # position within an array on render. 
   changed_item = @list[:todos].find { |todo| todo[:id] == todo_id }
   flip_completion(changed_item)
   status = return_todo_status(changed_item[:completed])
@@ -231,11 +228,10 @@ post '/lists/:id/delete' do
   @list_name = session[:lists].find { |list| list[:id] == @idx }
   delete_list(@idx)
   # This kind of defeats the purpose of AJAX - The issue is that the form has the 'delete' class, 
-  # which makes the JS handler fire, so we are forced to handle it as AJAX 
-  # (i.e. the code is configured to delete a todo, not delete a list)
+  # (i.e. the code is configured to delete a todo, not delete a list), so we need to handle with AJAX
   # even though it would make more sense to use a standard form submission.
+  
   # Returning '/lists' will return a status 200, triggering the other branch in our JS logic 
-
   # These conditionals work if the script tag is disabled in the template file
   env['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest' ? '/lists' : delete_list_success
 end
@@ -262,6 +258,7 @@ post '/lists/:list_id/todos/:id/delete' do
   # since they are only displayed when a new page is loaded from the server.
   return deleted_todo_success(deleted_item) unless env['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest'
 
+  # Status 204 indicates the request was successful, and there is no body in the response
   status 204
 end
 
