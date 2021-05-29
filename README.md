@@ -33,5 +33,6 @@ Avoiding `if` statements made me think about how to sequentially structure my co
 
 Working with both instance and local variables was a bit of a challenge. Because blocks create their own scope (i.e. for each request method in Sinatra), and routes are mutually exclusive, there's little risk of overwriting/conflicting instance variables. The lazy programmer in me just wants to use instance variables everywhere, as they allow access to the relevant `.erb` template.
 
-### Project To Dos
-- More generic error message generation
+As a proof of concept, jQuery has been integrated into this app to use AJAX for deleting todos and lists. This presented some challenges with the initial design of the app, where lists/todos were referenced by index. As XHR requests don't cause a re-render of the template, deleting a list or todo would not trigger the indices to update (the indices were based on order on __render__ of the page), meaning their old indices remained. 
+
+This meant that if a user interacted with a list or todo, the app would perform the action on a different list/todo compared to what they were pointing at (the routes had not updated and were different compared to the order in which the elements appear on the page). This was solved by creating persistent ids for objects, independent of their position in the array.
